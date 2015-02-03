@@ -425,52 +425,266 @@ class TimeDateTest extends PHPUnit_Framework_TestCase
         $timedate = new TimeDate();
         $this->assertSame($expected, $timedate->asUserTs($datetime,$user));
     }
-
-    public function testasDbDate()
+    public function asDbDateProvider()
     {
-        $this->markTestIncomplete('Not implemented yet');
+        $utc = new DateTimeZone('UTC');
+        $gb = new DateTimeZone('Europe/London');
+        return array(
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-02-15 15:16:17',$utc), true, '2015-02-15'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-09-01 00:02:03',$utc), true, '2015-09-01'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-02-15 15:16:17',$gb), true, '2015-02-15'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-09-01 00:02:03',$gb), true, '2015-08-31'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-02-15 15:16:17',$utc), false, '2015-02-15'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-09-01 00:02:03',$utc), false, '2015-09-01'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-02-15 15:16:17',$gb), false, '2015-02-15'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-09-01 00:02:03',$gb), false, '2015-09-01'),
+        );
+    }
+    /**
+     * @dataProvider asDbDateProvider
+     */
+    public function testasDbDate($datetime, $tz, $expected)
+    {
+        $timedate = new TimeDate();
+        $this->assertSame($expected, $timedate->asDbDate($datetime,$tz));
+    }
+
+    public function asUserDateProvider()
+    {
+        $utc = new DateTimeZone('UTC');
+        $gb = new DateTimeZone('Europe/London');
+        $map = array(
+            array('datef','global','d-m-Y'),
+            array('timef','global', 'H i s')
+        );
+        $user = $this->getMock('User');
+        $user->method('getPreference')
+            ->will($this->returnValueMap($map));
+        return array(
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-02-15 15:16:17',$utc), true, null, '02/15/2015'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-09-01 00:02:03',$utc), true, null, '09/01/2015'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-02-15 15:16:17',$gb), true, null, '02/15/2015'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-09-01 00:02:03',$gb), true, null, '08/31/2015'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-02-15 15:16:17',$utc), true, $user, '15-02-2015'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-09-01 00:02:03',$utc), true, $user, '01-09-2015'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-02-15 15:16:17',$gb), true, $user, '15-02-2015'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-09-01 00:02:03',$gb), true, $user, '31-08-2015'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-02-15 15:16:17',$utc), false, null, '02/15/2015'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-09-01 00:02:03',$utc), false, null, '09/01/2015'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-02-15 15:16:17',$gb), false, null, '02/15/2015'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-09-01 00:02:03',$gb), false, null, '09/01/2015'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-02-15 15:16:17',$utc), false, $user, '15-02-2015'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-09-01 00:02:03',$utc), false, $user, '01-09-2015'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-02-15 15:16:17',$gb), false, $user, '15-02-2015'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-09-01 00:02:03',$gb), false, $user, '01-09-2015'),
+        );
+    }
+
+    /**
+     * @dataProvider asUserDateProvider
+     */
+    public function testasUserDate($datetime, $tz, $user, $expected)
+    {
+        $timedate = new TimeDate();
+        $this->assertSame($expected, $timedate->asUserDate($datetime, $tz, $user));
+    }
+
+    public function asDbTimeProvider()
+    {
+        $utc = new DateTimeZone('UTC');
+        $gb = new DateTimeZone('Europe/London');
+        return array(
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-02-15 15:16:17',$utc), '15:16:17'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-09-01 00:02:03',$utc), '00:02:03'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-02-15 15:16:17',$gb), '15:16:17'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-09-01 00:02:03',$gb), '23:02:03'),
+        );
+    }
+    /**
+     * @dataProvider asDbTimeProvider
+     */
+    public function testasDbTime($datetime, $expected)
+    {
+        $timedate = new TimeDate();
+        $this->assertSame($expected, $timedate->asDbTime($datetime));
+    }
+
+    public function asUserTimeProvider()
+    {
+        $utc = new DateTimeZone('UTC');
+        $gb = new DateTimeZone('Europe/London');
+        $map = array(
+            array('datef','global','d-m-Y'),
+            array('timef','global', 'H i s')
+        );
+        $user = $this->getMock('User');
+        $user->method('getPreference')
+            ->will($this->returnValueMap($map));
+        return array(
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-02-15 15:16:17',$utc), null, '15:16'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-09-01 00:02:03',$utc), null, '00:02'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-02-15 15:16:17',$gb), null, '15:16'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-09-01 00:02:03',$gb), null, '23:02'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-02-15 15:16:17',$utc), $user, '15 16 17'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-09-01 00:02:03',$utc), $user, '00 02 03'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-02-15 15:16:17',$gb), $user, '15 16 17'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-09-01 00:02:03',$gb), $user, '23 02 03'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-02-15 15:16:17',$utc), null, '15:16'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-09-01 00:02:03',$utc), null, '00:02'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-02-15 15:16:17',$gb), null, '15:16'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-09-01 00:02:03',$gb), null, '23:02'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-02-15 15:16:17',$utc), $user, '15 16 17'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-09-01 00:02:03',$utc), $user, '00 02 03'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-02-15 15:16:17',$gb), $user, '15 16 17'),
+            array(DateTime::createFromFormat('Y-m-d H:i:s', '2015-09-01 00:02:03',$gb), $user, '23 02 03'),
+        );
+    }
+    /**
+     * @dataProvider asUserTimeProvider
+     */
+    public function testasUserTime($datetime, $user, $expected)
+    {
+        $timedate = new TimeDate();
+        $this->assertSame($expected, $timedate->asUserTime($datetime, $user));
     }
 
 
-    public function testasUserDate()
+    public function fromDbProvider()
     {
-        $this->markTestIncomplete('Not implemented yet');
+        $utc = new DateTimeZone('UTC');
+        return array(
+            array('2015-09-01 00:02:03', SugarDateTime::createFromFormat('Y-m-d H:i:s','2015-09-01 00:02:03', $utc)),
+            array('2015-02-15 15:16:17', SugarDateTime::createFromFormat('Y-m-d H:i:s','2015-02-15 15:16:17', $utc)),
+            array('2015-10-04', null),
+            array('13:14:15', null),
+            array('04/05/2015 12:14:14', null),
+        );
+    }
+    /**
+     * @dataProvider fromDbProvider
+     */
+    public function testfromDb($date, $expected)
+    {
+        $timedate = new TimeDate();
+        $this->assertEquals($expected, $timedate->fromDb($date));
     }
 
-
-    public function testasDbTime()
+    public function fromDbTypeProvider()
     {
-        $this->markTestIncomplete('Not implemented yet');
+        return array(
+            array('2015-09-01 00:02:03', 'date', false),
+            array('2015-02-15 15:16:17', 'date', false),
+            array('2015-09-01', 'date', '2015-09-01'),
+            array('2015-02-15', 'date', '2015-02-15'),
+            array('12/04/2015', 'date', false),
+            array('13:14:15', 'date', false),
+            array('04/05/2015 12:14:14', 'date', false),
+            array('2015-09-01 00:02:03', 'time', false),
+            array('2015-02-15 15:16:17', 'time', false),
+            array('2015-10-04', 'time', false),
+            array('13:14:15', 'time', '13:14:15'),
+            array('25:14:15', 'time', '01:14:15'),
+            array('04/05/2015 12:14:14', 'time', false),
+            array('2015-09-01 00:02:03', 'datetime', '2015-09-01 00:02:03'),
+            array('2015-02-15 15:16:17', 'datetime', '2015-02-15 15:16:17'),
+            array('2015-10-04', 'datetime', false),
+            array('13:14:15', 'datetime', false),
+            array('04/05/2015 12:14:14', 'datetime', false),
+            array('2015-09-01 00:02:03', 'datetimecombo', '2015-09-01 00:02:03'),
+            array('2015-02-15 15:16:17', 'datetimecombo', '2015-02-15 15:16:17'),
+            array('2015-10-04', 'datetimecombo', false),
+            array('13:14:15', 'datetimecombo', false),
+            array('04/05/2015 12:14:14', 'datetimecombo', false),
+        );
     }
 
-
-    public function testasUserTime()
+    /**
+     * @dataProvider fromDbTypeProvider
+     */
+    public function testfromDbType($date, $type, $expected)
     {
-        $this->markTestIncomplete('Not implemented yet');
+
+        $timedate = new TimeDate();
+        switch($type){
+            case 'date':
+                $format = 'Y-m-d';
+                break;
+            case 'time':
+                $format = 'H:i:s';
+                break;
+            case 'datetime':
+            case 'datetimecombo':
+                $format = 'Y-m-d H:i:s';
+                break;
+        }
+        $res = $timedate->fromDbType($date, $type);
+        if($res){
+            $this->assertSame($expected,$res->format($format));
+        }else{
+            $this->assertSame($expected, $res);
+        }
+
+
+    }
+    public function fromDbDateProvider()
+    {
+        return array(
+            array('2015-09-01 00:02:03', false),
+            array('2015-02-15 15:16:17', false),
+            array('2015-09-01', '2015-09-01'),
+            array('2015-02-15', '2015-02-15'),
+            array('12/04/2015', false),
+            array('13:14:15', false),
+            array('04/05/2015 12:14:14', false),
+        );
+    }
+    /**
+     * @dataProvider fromDbDateProvider
+     */
+    public function testfromDbDate($date, $expected)
+    {
+        $timedate = new TimeDate();
+
+        $res = $timedate->fromDbDate($date);
+        if($res){
+            $this->assertSame($expected,$res->format('Y-m-d'));
+        }else{
+            $this->assertSame($expected, $res);
+        }
     }
 
-
-    public function testfromDb()
+    public function fromDbFormatProvider()
     {
-        $this->markTestIncomplete('Not implemented yet');
+        return array(
+            array('2015-09-01 00:02:03', 'Y-m-d H:i:s', '2015-09-01 00:02:03', 'Y-m-d H:i:s'),
+            array('2015-02-15 15:16:17', 'Y-m-d H:i:s', '2015-02-15 15:16:17', 'Y-m-d H:i:s'),
+             array('2015-09-01', 'Y-m-d', '2015-09-01', 'Y-m-d'),
+             array('2015-02-15', 'Y-m-d', '2015-02-15', 'Y-m-d'),
+             array('12/04/2015', 'm/d/Y', '2015-12-04', 'Y-m-d'),
+             array('13:14:15', 'H:i:s', '13:14:15', 'H:i:s'),
+             array('04/05/2015 12:14:14', 'd/m/Y H:i:s', '2015-05-04 12:14:14', 'Y-m-d H:i:s'),
+            array('2015-09-01 00:02:03', 'Y-m-d', false, 'Y-m-d H:i:s'),
+            array('2015-02-15 15:16:17', 'Y-m-d H:i', false, 'Y-m-d H:i:s'),
+            array('2015-09-01', 'Y/m/d', false, 'Y-m-d'),
+            array('2015-02-15', 'Y-m-d H:i:s', false, 'Y-m-d'),
+            array('12/04/2015', 'Y-m-d', false, 'Y-m-d'),
+            array('2014-12-12 13:14:15', 'H:i:s', false, 'H:i:s'),
+            array('13/15/2015 12:14:14', 'd/m/Y', false, 'Y-m-d H:i:s'),
+        );
     }
-
-    public function testfromDbType()
+    /**
+     * @dataProvider fromDbFormatProvider
+     */
+    public function testfromDbFormat($date, $format, $expected, $cmpFormat)
     {
-        $this->markTestIncomplete('Not implemented yet');
+        $timedate = new TimeDate();
 
-    }
-
-
-    public function testfromDbDate()
-    {
-        $this->markTestIncomplete('Not implemented yet');
-    }
-
-
-    public function testfromDbFormat()
-    {
-        $this->markTestIncomplete('Not implemented yet');
+        $res = $timedate->fromDbFormat($date, $format);
+        if($res){
+            $this->assertSame($expected,$res->format($cmpFormat));
+        }else{
+            $this->assertSame($expected, $res);
+        }
     }
 
     public function testfromUser()
