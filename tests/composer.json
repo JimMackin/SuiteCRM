@@ -1,0 +1,6 @@
+{
+  "require-dev": {
+    "mikey179/vfsStream": "1.4.*",
+    "phpunit/phpunit": "4.4.*"
+  }
+}
