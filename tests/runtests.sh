@@ -1,2 +1,2 @@
 #!/bin/sh
-phpunit --bootstrap bootstrap.php --colors  tests/
+vendor/bin/phpunit tests/tests/
