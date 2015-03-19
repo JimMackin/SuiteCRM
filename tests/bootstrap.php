@@ -32,3 +32,5 @@ global $sugar_config, $db;
 require_once 'include/utils.php';
 require_once 'include/modules.php';
 require_once 'include/entryPoint.php';
+
+chdir('tests');
