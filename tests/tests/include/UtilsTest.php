@@ -56,24 +56,52 @@ class UtilsTest extends PHPUnit_Framework_TestCase
         $this->markTestIncomplete('Not implemented yet');
     }
 
-    public function testreturn_name()
+    public function return_nameProvider()
     {
-        $this->markTestIncomplete('Not implemented yet');
+        return array(
+            array(array('first'=>'Jim','last'=>'Mackin'),'first','last','Jim Mackin'),
+            array(array('first'=>'Jim','last'=>''),'first','last','Jim'),
+            array(array('first'=>'','last'=>'Mackin'),'first','last','Mackin'),
+            array(array('first'=>'','last'=>''),'first','last',''),
+            array(array('first'=>'Jim'),'first','last','Jim'),
+            array(array('last'=>'Mackin'),'first','last','Mackin'),
+            array(array(),'first','last',''),
+            array(array('first'=>'Jim','last'=>"O'Reily"),'first','last','Jim O\'Reily'),
+            array(array('first'=>'Jim','last'=>"O\'Reily"),'first','last','Jim O\'Reily'),
+        );
+    }
+    /**
+     * @dataProvider return_nameProvider
+     */
+    public function testreturn_name($row, $first, $last, $expected)
+    {
+        $this->assertSame($expected, return_name($row,$first,$last));
     }
 
     public function testget_languages()
     {
-        $this->markTestIncomplete('Not implemented yet');
+        $this->assertSame(array(
+            'en_us' => 'English (US)',
+            'es_es' => 'Español (ES)',
+            'ru_ru' => 'Русский (RU)',
+        ),
+        get_languages());
     }
 
     public function testget_all_languages()
     {
-        $this->markTestIncomplete('Not implemented yet');
+        $this->assertSame(array(
+            'en_us' => 'English (US)',
+            'es_es' => 'Español (ES)',
+            'ru_ru' => 'Русский (RU)',
+        ),get_all_languages());
     }
 
     public function testget_language_display()
     {
-        $this->markTestIncomplete('Not implemented yet');
+        $this->assertSame('English (US)', get_language_display('en_us'));
+        $this->assertSame('Español (ES)', get_language_display('es_es'));
+        $this->assertSame('Русский (RU)',get_language_display('ru_ru'));
     }
 
     public function testget_assigned_user_name()
@@ -317,9 +345,25 @@ class UtilsTest extends PHPUnit_Framework_TestCase
         $this->markTestIncomplete('Not implemented yet');
     }
 
-    public function testadd_http()
+    public function add_httpProvider()
     {
-        $this->markTestIncomplete('Not implemented yet');
+        return array(
+            array('suitecrm.com','http://suitecrm.com'),
+            array('http://suitecrm.com','http://suitecrm.com'),
+            array('https://suitecrm.com','https://suitecrm.com'),
+            array('www.suitecrm.com','http://www.suitecrm.com'),
+            array('http://www.suitecrm.com','http://www.suitecrm.com'),
+            array('https://www.suitecrm.com','https://www.suitecrm.com'),
+            array('ftp://suitecrm.com','ftp://suitecrm.com'),
+            array('','http://'),
+        );
+    }
+    /**
+     * @dataProvider add_httpProvider
+     */
+    public function testadd_http($url,$expected)
+    {
+        $this->assertSame($expected,add_http($url));
     }
 
     public function testgetDefaultXssTags()
@@ -418,9 +462,23 @@ class UtilsTest extends PHPUnit_Framework_TestCase
         $this->markTestIncomplete('Not implemented yet');
     }
 
-    public function testcleanup_slashes()
+    public function cleanup_slashesProvider()
     {
-        $this->markTestIncomplete('Not implemented yet');
+        return array(
+            array('\'Foo','\'Foo'),
+            array("\\Foo\\'","Foo'"),
+            array("Bar",'Bar'),
+            array("",''),
+            array(3,3),
+            array(array(),array()),
+        );
+    }
+    /**
+     * @dataProvider cleanup_slashesProvider
+     */
+    public function testcleanup_slashes($val, $expected)
+    {
+        $this->assertSame($expected,cleanup_slashes($val));
     }
 
     public function testset_register_value()
@@ -438,9 +496,20 @@ class UtilsTest extends PHPUnit_Framework_TestCase
         $this->markTestIncomplete('Not implemented yet');
     }
 
-    public function testconvert_id()
+    public function convert_idProvider()
     {
-        $this->markTestIncomplete('Not implemented yet');
+        return array(
+            array('f69703de-a518-1580-ea72-52ab186d39fc','f69703de-a518-1580-ea72-52ab186d39fc'),
+            array('foo_bar','foo95bar'),
+            array('foo%bar','foo37bar'),
+        );
+    }
+    /**
+     * @dataProvider convert_idProvider
+     */
+    public function testconvert_id($string, $expected)
+    {
+        $this->assertSame($expected, convert_id($string));
     }
 
     public function testget_image()
@@ -478,9 +547,23 @@ class UtilsTest extends PHPUnit_Framework_TestCase
         $this->markTestIncomplete('Not implemented yet');
     }
 
-    public function testgetSQLDate()
+    public function getSQLDateProvider()
     {
-        $this->markTestIncomplete('Not implemented yet');
+        return array(
+            array('',''),
+            array('5-5-2015','2015-05-05'),
+            array('12-22-2015','2015-12-22'),
+            array('5/5/2015','2015-05-05'),
+            array('12/22/2015','2015-12-22'),
+            array('2015-05-05',''),
+        );
+    }
+    /**
+     * @dataProvider getSQLDateProvider
+     */
+    public function testgetSQLDate($date, $expected)
+    {
+        $this->assertSame($expected, getSQLDate($date));
     }
 
     public function testclone_history()
@@ -549,6 +632,7 @@ class UtilsTest extends PHPUnit_Framework_TestCase
 
     public function testdisplay_notice()
     {
+
         $this->markTestIncomplete('Not implemented yet');
     }
 
@@ -611,9 +695,27 @@ class UtilsTest extends PHPUnit_Framework_TestCase
 
 
 
-    public function testcheck_php_version()
+    public function check_php_versionProvider()
     {
-        $this->markTestIncomplete('Not implemented yet');
+        return array(
+            array('5.2.2',1),
+            array('5.2.7',-1),
+            array('5.2.8',1),
+            array('5.2.1',-1),
+            array('4',-1),
+            array('4.0.0',-1),
+            array('5.3',0),
+            array('5.3.1',0),
+            array('5.4',0),
+            array('5.4.1',0),
+        );
+    }
+    /**
+     * @dataProvider check_php_versionProvider
+     */
+    public function testcheck_php_version($version, $expected)
+    {
+        $this->assertSame($expected,check_php_version($version));
     }
 
     public function testcheck_iis_version()
@@ -661,9 +763,25 @@ class UtilsTest extends PHPUnit_Framework_TestCase
         $this->markTestIncomplete('Not implemented yet');
     }
 
-    public function testreturn_bytes()
+    public function return_bytesProvider()
     {
-        $this->markTestIncomplete('Not implemented yet');
+        return array(
+            array('5','5'),
+            array('10k',10240),
+            array('10K',10240),
+            array('12m',12582912),
+            array('12M',12582912),
+            array('15g',16106127360),
+            array('15G',16106127360),
+            array('19a','19a'),
+        );
+    }
+    /**
+     * @dataProvider return_bytesProvider
+     */
+    public function testreturn_bytes($val, $expected)
+    {
+        $this->assertSame($expected,return_bytes($val));
     }
 
     public function testurl2html()
@@ -721,19 +839,30 @@ class UtilsTest extends PHPUnit_Framework_TestCase
         $this->markTestIncomplete('Not implemented yet');
     }
 
-    public function testcheckAuthUserStatus()
-    {
-        $this->markTestIncomplete('Not implemented yet');
-    }
 
     public function testgetPhpInfo()
     {
         $this->markTestIncomplete('Not implemented yet');
     }
 
-    public function teststring_format()
+
+    public function string_formatProvider()
     {
-        $this->markTestIncomplete('Not implemented yet');
+        return array(
+            array('Hello {0}',array('world!'),'Hello world!'),
+            array('Hello {0}',array(),'Hello {0}'),
+            array('{1} {0}',array('world!','Hello'),'Hello world!'),
+            array('{1} {0}{2}',array('world!','Hello'),'Hello world!{2}'),
+            array('Foo',array('world!','Hello'),'Foo'),
+            array('',array(),''),
+        );
+    }
+    /**
+     * @dataProvider string_formatProvider
+     */
+    public function teststring_format($format, $args, $expected)
+    {
+        $this->assertSame($expected, string_format($format,$args));
     }
 
     public function testformat_number_display()
@@ -924,7 +1053,8 @@ class UtilsTest extends PHPUnit_Framework_TestCase
     {
         $this->assertNotFalse(ini_get('display_errors'));
         ajaxInit();
-        $this->assertFalse(ini_get('display_errors'));
+        $disp = ini_get('display_errors');
+        $this->assertTrue(!$disp || $disp === 'false');
         ini_set('display_errors',1);
     }
 
@@ -1036,10 +1166,23 @@ class UtilsTest extends PHPUnit_Framework_TestCase
     {
         $this->markTestIncomplete('Not implemented yet');
     }
-
-    public function testgetVariableFromQueryString()
+    public function getVariableFromQueryStringProvider()
     {
-        $this->markTestIncomplete('Not implemented yet');
+        return array(
+            array('','',false),
+            array('foo=bar','foo','bar'),
+            array('foo=bar','bar',false),
+            array('foo=bar','baz',false),
+            array('foo=bar&baz=biz','foo','bar'),
+            array('foo=bar&baz=biz','baz','biz'),
+        );
+    }
+    /**
+     * @dataProvider getVariableFromQueryStringProvider
+     */
+    public function testgetVariableFromQueryString($query,$variable, $expected)
+    {
+        $this->assertSame($expected, getVariableFromQueryString($variable,$query));
     }
 
     public function testshould_hide_iframes()
@@ -1047,14 +1190,44 @@ class UtilsTest extends PHPUnit_Framework_TestCase
         $this->markTestIncomplete('Not implemented yet');
     }
 
-    public function testgetVersionStatus()
+    public function getVersionStatusProvider()
     {
-        $this->markTestIncomplete('Not implemented yet');
+        return array(
+            array('6.5.20','GA'),
+            array('6.5.20 RC 1','RC 1'),
+            array('7.2.3','7.2.3'),
+            array('7.3 Beta','Beta'),
+            array('','GA'),
+            array(null,null),
+
+        );
+    }
+    /**
+     * @dataProvider getVersionStatusProvider
+     */
+    public function testgetVersionStatus($version, $expected)
+    {
+        $this->assertSame($expected, getVersionStatus($version));
     }
 
-    public function testgetMajorMinorVersion()
+    public function getMajorMinorVersionProvider()
     {
-        $this->markTestIncomplete('Not implemented yet');
+        return array(
+            array('6.5.20','6.5.20'),
+            array('6.5.20 RC 1','6.5.20'),
+            array('7.2.3','7.2.3'),
+            array('7.3 Beta','7.3'),
+            array('',''),
+            array(null,null),
+
+        );
+    }
+    /**
+     * @dataProvider getMajorMinorVersionProvider
+     */
+    public function testgetMajorMinorVersion($version, $expected)
+    {
+        $this->assertSame($expected, getMajorMinorVersion($version));
     }
 
     public function testsugar_microtime()
@@ -1154,7 +1327,9 @@ class UtilsTest extends PHPUnit_Framework_TestCase
 
     public function testget_language_header()
     {
-        $this->markTestIncomplete('Not implemented yet');
+        $this->assertSame("lang='".$GLOBALS['current_language']."'",get_language_header());
+        unset($GLOBALS['current_language']);
+        $this->assertSame("lang='en'",get_language_header());
     }
 
     public function testget_custom_file_if_exists()
