@@ -22,7 +22,7 @@
  *
  * @author Salesagility Ltd <support@salesagility.com>
  */
-
+require_once 'vendor/autoload.php';
 chdir('..');
 
 define('sugarEntry',TRUE);
@@ -33,4 +33,3 @@ require_once 'include/utils.php';
 require_once 'include/modules.php';
 require_once 'include/entryPoint.php';
 
-chdir('tests');
